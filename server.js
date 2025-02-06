@@ -3,16 +3,16 @@ const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 
 const app = express();
-const port = 3000;
+const port = 3306;
 
 app.use(bodyParser.json());
 
 // Database connection setup
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'your_username',
-    password: 'your_password',
-    database: 'your_database'
+    host: '107.180.1.16',
+    user: 'cis440springA2025team10',
+    password: 'cis440springA2025team10',
+    database: 'cis440springA2025team10'
 });
 
 db.connect(err => {
