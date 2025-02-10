@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employee Feedback Portal</title>
     <link rel="stylesheet" href="styles.css">
+<main>
     <style>
         /* Basic styling for the entire page */
         body {
@@ -170,46 +171,6 @@
             <h2>Feedback from Employees</h2>
         </section>
     </main>
-
-    <script>
-        // JavaScript to handle feedback form submission
-        document.querySelector('.feedback-form').addEventListener('submit', function(event) {
-            event.preventDefault();  // Prevent form from actually submitting since backend isn't ready
-
-            // Get the value of the feedback textarea
-            const feedbackText = document.querySelector('#feedback-text').value;
-
-            // Only proceed if the feedback is not empty
-            if (feedbackText.trim() !== '') {
-                // Select the feedback display section
-                const feedbackSection = document.querySelector('.feedback-display-section');
-
-                // Create a new feedback post element
-                const newFeedback = document.createElement('div');
-                newFeedback.classList.add('feedback-post');
-
-                // Add feedback content, upvote/downvote buttons, and comment input to the new post
-                newFeedback.innerHTML = `
-                    <p>${feedbackText}</p>
-                    <div class="feedback-actions">
-                        <button class="upvote">👍 0</button>
-                        <button class="downvote">👎 0</button>
-                    </div>
-                    <div class="comment-section">
-                        <input type="text" class="comment-input" placeholder="Add a comment...">
-                    </div>
-                `;
-
-                // Append the new feedback post to the feedback display section
-                feedbackSection.appendChild(newFeedback);
-
-                // Display the confirmation message
-                document.querySelector('.confirmation-message').style.display = 'block';
-
-                // Clear the textarea for new input
-                document.querySelector('#feedback-text').value = '';
-            }
-        });
-    </script>
+  <script src="javascript.js"></script>
 </body>
 </html>
