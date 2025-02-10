@@ -1,11 +1,13 @@
 const express = require('express');
 const mysql = require('mysql2');
 const bodyParser = require('body-parser');
+const cors = require('cors'); // Import CORS
 
 const app = express();
-const port = 3306;
+const port = 3000;
 
 app.use(bodyParser.json());
+app.use(cors()); // Enable CORS for all requests
 
 // Database connection setup
 const db = mysql.createConnection({
@@ -25,20 +27,26 @@ db.connect(err => {
 
 // API endpoint to handle feedback submission
 app.post('/submit-feedback', (req, res) => {
-    const { feedback } = req.body;
-    if (!feedback) {
-        return res.status(400).json({ error: 'Feedback is required' });
+    console.log('Received data:', req.body); // Log request data
+    const { feedback_text } = req.body;
+
+    if (!feedback_text) {
+        console.error('Feedback text is missing.');
+        return res.status(400).json({ error: 'Feedback text is required' });
     }
 
-    const query = 'INSERT INTO feedback (message) VALUES (?)';
-    db.query(query, [feedback], (err, result) => {
+    const query = 'INSERT INTO feedback (feedback_text) VALUES (?)';
+
+    db.query(query, [feedback_text], (err, result) => {
         if (err) {
-            console.error('Error inserting feedback:', err);
-            return res.status(500).json({ error: 'Database error' });
+            console.error('Error inserting feedback:', err); // Log full MySQL error
+            return res.status(500).json({ error: err.sqlMessage || 'Error submitting feedback' });
         }
-        res.json({ success: true, id: result.insertId });
+        console.log('Feedback inserted successfully:', result);
+        res.json({ message: 'Feedback submitted successfully' });
     });
 });
+
 
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
