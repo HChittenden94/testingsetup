@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employee Feedback Portal</title>
     <link rel="stylesheet" href="styles.css">
-
     <style>
         /* Basic styling for the entire page */
         body {
@@ -19,7 +18,13 @@
         header {
             background-color: #007bff;
             padding: 10px;
-            text-align: center;
+        }
+
+        /* Navigation container for proper alignment */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         /* Navigation button styling */
@@ -69,17 +74,18 @@
         }
 
         /* Post button styling */
-        .post-button {
+        .post-button, .comment-button {
             background-color: #28a745;
             color: white;
-            padding: 10px 20px;
+            padding: 5px 10px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin-top: 5px;
         }
 
         /* Hover effect for the post button */
-        .post-button:hover {
+        .post-button:hover, .comment-button:hover {
             background-color: #218838;
         }
 
@@ -104,7 +110,7 @@
         }
 
         /* Layout for upvote and downvote buttons */
-        .feedback-actions {
+        .feedback-actions, .comment-actions {
             display: flex;
             gap: 10px;
             margin-top: 10px;
@@ -142,50 +148,83 @@
             border-radius: 5px;
         }
 
-        /* Styling for the feedback header, which includes feedback text and timestamp */
-        .feedback-header {
-            position: relative;
-            padding-bottom: 10px;
+        /* Comment display styling */
+        .comment-container {
+            margin-top: 10px;
+            padding-left: 20px;
+            border-left: 2px solid #ddd;
         }
-
-        /* Timestamp styling */
-        .timestamp {
-            position: absolute;
-            top: 0;
-            right: 0;
-            font-size: 0.8em;
-            color: #666;
-        }
-
     </style>
 </head>
 <body>
     <header>
-        <!-- Navigation buttons for different feedback views -->
         <nav>
+            <button class="nav-button" onclick="location.href='manager-login.html'">Manager Login</button> <!-- Updated file reference -->
             <button class="nav-button active">Feedback</button>
         </nav>
     </header>
 
     <main>
-        <!-- Feedback Form Section -->
         <section class="feedback-form-section">
             <h2>Submit Your Feedback</h2>
             <form class="feedback-form">
-                <!-- Textarea for entering feedback -->
                 <textarea id="feedback-text" class="feedback-input" placeholder="Enter your feedback here..." required></textarea>
-                <!-- Button to submit feedback -->
                 <button type="submit" class="post-button">Post</button>
             </form>
-            <!-- Confirmation message displayed after submission -->
             <div class="confirmation-message">Thank you! Your feedback has been submitted.</div>
         </section>
 
-        <!-- Feedback Display Section -->
         <section class="feedback-display-section">
             <h2>Feedback from Employees</h2>
         </section>
     </main>
-  <script src="javascript.js"></script>  
+
+    <script>
+        document.querySelector('.feedback-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const feedbackText = document.querySelector('#feedback-text').value;
+            if (feedbackText.trim() !== '') {
+                const feedbackSection = document.querySelector('.feedback-display-section');
+                const newFeedback = document.createElement('div');
+                newFeedback.classList.add('feedback-post');
+                newFeedback.innerHTML = `
+                    <p>${feedbackText}</p>
+                    <div class="feedback-actions">
+                        <button class="upvote">👍 0</button>
+                        <button class="downvote">👎 0</button>
+                    </div>
+                    <div class="comment-section">
+                        <input type="text" class="comment-input" placeholder="Add a comment...">
+                        <button class="comment-button">Post</button>
+                        <div class="comment-container"></div>
+                    </div>
+                `;
+                feedbackSection.appendChild(newFeedback);
+                document.querySelector('.confirmation-message').style.display = 'block';
+                document.querySelector('#feedback-text').value = '';
+            }
+        });
+
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('comment-button')) {
+                const commentInput = event.target.previousElementSibling;
+                const commentText = commentInput.value;
+                if (commentText.trim() !== '') {
+                    const commentContainer = event.target.nextElementSibling;
+                    const newComment = document.createElement('div');
+                    newComment.classList.add('comment-container');
+                    newComment.innerHTML = `
+                        <p>${commentText}</p>
+                        <div class="comment-actions">
+                            <button class="upvote">👍 0</button>
+                            <button class="downvote">👎 0</button>
+                        </div>
+                    `;
+                    commentContainer.appendChild(newComment);
+                    commentInput.value = '';
+                }
+            }
+        });
+    </script>
 </body>
 </html>
