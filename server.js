@@ -17,12 +17,26 @@ const db = mysql.createConnection({
     database: 'cis440springA2025team10'
 });
 
+//Provide error if database connection fails
 db.connect(err => {
     if (err) {
         console.error('Database connection failed:', err);
         return;
     }
     console.log('Connected to the database');
+});
+
+//Fetch feedback from database
+app.get('/get-feedback', (req, res) => {
+    const sql = 'SELECT * FROM feedback ORDER BY created_at DESC'; // Fetch in order
+
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        res.json(results);
+    });
 });
 
 // API endpoint to handle feedback submission
