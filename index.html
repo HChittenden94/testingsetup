@@ -22,6 +22,13 @@
             text-align: center;
         }
 
+        /* Navigation container for proper alignment */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         /* Navigation button styling */
         .nav-button {
             background-color: #0056b3;
@@ -69,17 +76,18 @@
         }
 
         /* Post button styling */
-        .post-button {
+        .post-button, .comment-button {
             background-color: #28a745;
             color: white;
-            padding: 10px 20px;
+            padding: 5px 10px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin-top: 5px;
         }
 
         /* Hover effect for the post button */
-        .post-button:hover {
+        .post-button:hover, .comment-button:hover {
             background-color: #218838;
         }
 
@@ -104,7 +112,7 @@
         }
 
         /* Layout for upvote and downvote buttons */
-        .feedback-actions {
+        .feedback-actions, .comment-actions {
             display: flex;
             gap: 10px;
             margin-top: 10px;
@@ -157,12 +165,20 @@
             color: #666;
         }
 
+        /* Comment display styling */
+        .comment-container {
+            margin-top: 10px;
+            padding-left: 20px;
+            border-left: 2px solid #ddd;
+        }
+
     </style>
 </head>
 <body>
     <header>
         <!-- Navigation buttons for different feedback views -->
         <nav>
+            <button class="nav-button" onclick="location.href='manager-login.html'">Manager Login</button> <!-- Updated file reference -->
             <button class="nav-button active">Feedback</button>
         </nav>
     </header>
