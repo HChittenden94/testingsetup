@@ -151,3 +151,50 @@ async function loadComments(feedbackId) {
         console.error('Error fetching comments:', error);
     }
 }
+
+//from index.html 2-13-25 12:34 PM
+
+document.querySelector('.feedback-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const feedbackText = document.querySelector('#feedback-text').value;
+            if (feedbackText.trim() !== '') {
+                const feedbackSection = document.querySelector('.feedback-display-section');
+                const newFeedback = document.createElement('div');
+                newFeedback.classList.add('feedback-post');
+                newFeedback.innerHTML = `
+                    <p>${feedbackText}</p>
+                    <div class="feedback-actions">
+                        <button class="upvote">👍 0</button>
+                        <button class="downvote">👎 0</button>
+                    </div>
+                    <div class="comment-section">
+                        <input type="text" class="comment-input" placeholder="Add a comment...">
+                        <button class="comment-button">Post</button>
+                        <div class="comment-container"></div>
+                    </div>
+                `;
+                feedbackSection.appendChild(newFeedback);
+                document.querySelector('.confirmation-message').style.display = 'block';
+                document.querySelector('#feedback-text').value = '';
+            }
+        });
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('comment-button')) {
+                const commentInput = event.target.previousElementSibling;
+                const commentText = commentInput.value;
+                if (commentText.trim() !== '') {
+                    const commentContainer = event.target.nextElementSibling;
+                    const newComment = document.createElement('div');
+                    newComment.classList.add('comment-container');
+                    newComment.innerHTML = `
+                        <p>${commentText}</p>
+                        <div class="comment-actions">
+                            <button class="upvote">👍 0</button>
+                            <button class="downvote">👎 0</button>
+                        </div>
+                    `;
+                    commentContainer.appendChild(newComment);
+                    commentInput.value = '';
+                }
+            }
+        });
