@@ -201,6 +201,30 @@
         <section class="feedback-display-section">
             <h2>Feedback from Employees</h2>
         </section>
+
+        <!-- Manager Only Section -->
+        <div id="manager-section" style="display: none;">
+        <h2>Manager-Only Content</h2>
+        <p>This section is only visible to logged-in managers.</p>
+    </div>
+
+    <button id="logout-button" style="display: none;">Logout</button>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const isManager = localStorage.getItem('isManager') === 'true';
+
+        if (isManager) {
+            document.getElementById('manager-section').style.display = 'block';
+            document.getElementById('logout-button').style.display = 'block';
+        }
+
+        document.getElementById('logout-button').addEventListener('click', function() {
+            localStorage.removeItem('isManager');
+            window.location.reload();
+        });
+    });
+    </script>
     </main>
   <script src="javascript.js"></script>  
 </body>
