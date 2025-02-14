@@ -67,7 +67,6 @@ app.post('/login', (req, res) => {
     });
 });
 
-
 // API endpoint to handle feedback submission
 app.post('/submit-feedback', (req, res) => {
     console.log('Received data:', req.body); // Log request data
