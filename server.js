@@ -7,6 +7,8 @@ const cors = require('cors'); // Import CORS
 const app = express();
 const port = 3000;
 
+const bcrypt = require('bcrypt');
+
 app.use(bodyParser.json());
 app.use(cors()); // Enable CORS for all requests
 
@@ -41,38 +43,30 @@ app.get('/get-feedback', (req, res) => {
 });
 
 //Manager Login - Check credentials
-app.post('/login', async (req, res) => {
+app.post('/login', (req, res) => {
     const { username, password } = req.body;
 
-    try {
-        // Query to fetch the user by username from the "users" table
-        db.query('SELECT * FROM users WHERE username = ?', [username], async (err, results) => {
-            if (err) {
-                console.error('Database error:', err);
-                return res.status(500).json({ success: false, message: 'Internal server error' });
-            }
+    db.query('SELECT * FROM managers WHERE username = ?', [username], (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ success: false, message: 'Internal server error' });
+        }
 
-            // Check if the user exists
-            if (results.length === 0) {
-                return res.json({ success: false, message: 'Invalid username or password' });
-            }
+        if (results.length === 0) {
+            return res.json({ success: false, message: 'Invalid username or password' });
+        }
 
-            const user = results[0];
+        const user = results[0];
 
-            // Compare the input password with the stored hashed password
-            const match = await bcrypt.compare(password, user.password); // Assuming password is hashed
-
-            if (match) {
-                return res.json({ success: true, message: 'Login successful' });
-            } else {
-                return res.json({ success: false, message: 'Invalid username or password' });
-            }
-        });
-    } catch (error) {
-        console.error('Error logging in:', error);
-        res.status(500).json({ success: false, message: 'Internal server error' });
-    }
+        // Directly compare plain text passwords
+        if (password === user.password) {
+            return res.json({ success: true, message: 'Login successful' });
+        } else {
+            return res.json({ success: false, message: 'Invalid username or password' });
+        }
+    });
 });
+
 
 // API endpoint to handle feedback submission
 app.post('/submit-feedback', (req, res) => {
