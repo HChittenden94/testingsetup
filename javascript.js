@@ -1,8 +1,8 @@
-document.addEventListener('DOMContentLoaded', loadFeedback); // Load feedback when page loads
+document.addEventListener('DOMContentLoaded', loadFeedback);
 
 // Handle feedback form submission
 document.querySelector('.feedback-form').addEventListener('submit', async function(event) {
-    event.preventDefault();  // Prevent default form submission
+    event.preventDefault();
 
     const feedbackText = document.querySelector('#feedback-text').value.trim();
     if (!feedbackText) {
@@ -14,14 +14,14 @@ document.querySelector('.feedback-form').addEventListener('submit', async functi
         const response = await fetch('http://localhost:3000/submit-feedback', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ feedback_text: feedbackText }) // Matches database column
+            body: JSON.stringify({ feedback_text: feedbackText })
         });
 
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
         console.log('Feedback submitted successfully');
-        document.querySelector('#feedback-text').value = ''; // Clear textarea
-        document.querySelector('.confirmation-message').style.display = 'block'; // Show confirmation
+        document.querySelector('#feedback-text').value = '';
+        document.querySelector('.confirmation-message').style.display = 'block';
 
         loadFeedback(); // Refresh feedback list
     } catch (error) {
@@ -30,68 +30,119 @@ document.querySelector('.feedback-form').addEventListener('submit', async functi
     }
 });
 
-// Fetch and display feedback and comments from database
+// Function to check if user is a manager
+function checkSession() {
+    return localStorage.getItem('role') === 'manager';
+}
+
+// Fetch and display feedback
 async function loadFeedback() {
+    const isManager = localStorage.getItem('role') === 'manager';
+
     try {
         const response = await fetch('http://localhost:3000/get-feedback');
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-
         const feedbackList = await response.json();
-        console.log('Feedback received:', feedbackList);
-
         const feedbackSection = document.querySelector('.feedback-display-section');
         feedbackSection.innerHTML = '<h2>Feedback from Employees</h2>';
 
         feedbackList.forEach(feedback => {
             const feedbackPost = document.createElement('div');
-            const feedbackTimestamp = new Date(feedback.created_at);
-            const formattedFeedbackTimestamp = feedbackTimestamp.toLocaleString(); // Format as 'MM/DD/YYYY, HH:MM AM/PM'
             feedbackPost.classList.add('feedback-post');
-            feedbackPost.setAttribute('data-id', feedback.id);
-
+            feedbackPost.dataset.id = feedback.feedback_id; // Store feedback ID
             feedbackPost.innerHTML = `
-                <div class="feedback-header">
-                    <p>${feedback.feedback_text}</p>
-                    <p><small class="timestamp">${formattedFeedbackTimestamp}</small></p> <!-- Timestamp at top-right -->
-                </div>
+                <p>${feedback.feedback_text}</p>
+
+                <!-- Upvote/Downvote Buttons -->
                 <div class="feedback-actions">
-                    <button class="upvote">👍 0</button>
-                    <button class="downvote">👎 0</button>
+                    <button class="upvote" data-id="${feedback.feedback_id}">👍 ${feedback.upvotes || 0}</button>
+                    <button class="downvote" data-id="${feedback.feedback_id}">👎 ${feedback.downvotes || 0}</button>
                 </div>
+
+                <!-- Comment Section -->
                 <div class="comment-section">
                     <input type="text" class="comment-input" placeholder="Add a comment...">
-                    <button class="submit-comment" data-id="${feedback.id}">Post</button>
+                    <button class="comment-button" data-id="${feedback.feedback_id}">Post</button>
+                    <div class="comment-container"></div>
                 </div>
+
+                <!-- Acknowledgment Checkbox (Managers Only) -->
+				${isManager ? `
+					<label>
+						<input type="checkbox" class="mark-read" data-id="${feedback.feedback_id}" ${feedback.manager_acknowledged ? 'checked' : ''}>
+						Mark as Acknowledged
+					</label>
+				` : feedback.manager_acknowledged ? '<p style="color: green; font-weight: bold;">✅ Acknowledged by Manager</p>' : ''}
+
             `;
 
-
             feedbackSection.appendChild(feedbackPost);
-
-            // Load comments for this feedback
-            loadComments(feedback.id);
         });
 
-        // Event listener for submitting comments
-        document.querySelectorAll('.submit-comment').forEach(button => {
+        // Add event listeners for upvote/downvote buttons
+        document.querySelectorAll('.upvote').forEach(button => {
             button.addEventListener('click', function () {
-                const feedbackId = this.getAttribute('data-id');
+                voteFeedback(this.dataset.id, 1);
+            });
+        });
+
+        document.querySelectorAll('.downvote').forEach(button => {
+            button.addEventListener('click', function () {
+                voteFeedback(this.dataset.id, -1);
+            });
+        });
+
+        // Add event listeners for comments
+        document.querySelectorAll('.comment-button').forEach(button => {
+            button.addEventListener('click', function () {
+                const feedbackId = this.dataset.id;
                 const commentInput = this.previousElementSibling;
                 const commentText = commentInput.value.trim();
 
                 if (commentText) {
                     postComment(feedbackId, commentText);
-                    commentInput.value = ''; // Clear input after submission
+                    commentInput.value = ''; // Clear input
                 }
             });
         });
+
+        // Add event listeners for manager acknowledgment
+        if (isManager) {
+            document.querySelectorAll('.mark-read').forEach(checkbox => {
+                checkbox.addEventListener('change', async function () {
+                    const feedbackId = this.dataset.id || this.closest('.feedback-post').dataset.id;
+                    if (!feedbackId) {
+                        console.error("Feedback ID is missing!");
+                        return;
+                    }
+
+                    const isChecked = this.checked ? 1 : 0;
+                    console.log(`Sending acknowledgment update for feedback_id: ${feedbackId}, status: ${isChecked}`);
+
+                    await markFeedbackAsRead(feedbackId, isChecked);
+                });
+            });
+        }
 
     } catch (error) {
         console.error('Error fetching feedback:', error);
     }
 }
 
-// Load feedback on page load
-document.addEventListener('DOMContentLoaded', loadFeedback);
+// Mark feedback as acknowledged
+async function markFeedbackAsRead(feedbackId, acknowledged) {
+    try {
+        const response = await fetch('http://localhost:3000/mark-feedback-read', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ feedback_id: feedbackId, acknowledged })
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        console.log(`Feedback ID ${feedbackId} marked as ${acknowledged ? 'acknowledged' : 'unacknowledged'}`);
+    } catch (error) {
+        console.error('Error updating acknowledgment:', error);
+    }
+}
 
 // Function to submit a comment
 async function postComment(feedbackId, commentText) {
@@ -104,10 +155,7 @@ async function postComment(feedbackId, commentText) {
 
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
-        const result = await response.json();
-        console.log('Comment submitted:', result);
-
-        // Refresh comments for this feedback
+        console.log('Comment submitted successfully');
         loadComments(feedbackId);
     } catch (error) {
         console.error('Error submitting comment:', error);
@@ -115,7 +163,7 @@ async function postComment(feedbackId, commentText) {
     }
 }
 
-// Function to fetch and display comments under each feedback
+// Fetch and display comments
 async function loadComments(feedbackId) {
     try {
         const response = await fetch(`http://localhost:3000/get-comments?feedback_id=${feedbackId}`);
@@ -124,27 +172,16 @@ async function loadComments(feedbackId) {
         const comments = await response.json();
         console.log(`Comments for feedback ${feedbackId}:`, comments);
 
-        // Find the feedback post container
         const feedbackPost = document.querySelector(`.feedback-post[data-id='${feedbackId}']`);
         if (!feedbackPost) return;
 
-        const commentSection = feedbackPost.querySelector('.comment-section');
-        commentSection.innerHTML = `<input type="text" class="comment-input" placeholder="Add a comment...">
-                                    <button class="submit-comment" data-id="${feedbackId}">Post</button>`;
+        const commentContainer = feedbackPost.querySelector('.comment-container');
+        commentContainer.innerHTML = '';
 
-        const commentTimestamp = new Date(comment.created_at);
-        const formattedCommentTimestamp = commentTimestamp.toLocaleString(); // Format as 'MM/DD/YYYY, HH:MM AM/PM'
-
-        commentElement.innerHTML = `
-            <p>${comment.comment}</p>
-            <p><small class="timestamp">${formattedCommentTimestamp}</small></p> <!-- Timestamp at top-right -->
-        `;
-
-        // Append comments in chronological order
         comments.forEach(comment => {
             const commentElement = document.createElement('p');
             commentElement.textContent = comment.comment;
-            commentSection.appendChild(commentElement);
+            commentContainer.appendChild(commentElement);
         });
 
     } catch (error) {
@@ -152,49 +189,3 @@ async function loadComments(feedbackId) {
     }
 }
 
-//from index.html 2-13-25 12:34 PM
-
-document.querySelector('.feedback-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const feedbackText = document.querySelector('#feedback-text').value;
-            if (feedbackText.trim() !== '') {
-                const feedbackSection = document.querySelector('.feedback-display-section');
-                const newFeedback = document.createElement('div');
-                newFeedback.classList.add('feedback-post');
-                newFeedback.innerHTML = `
-                    <p>${feedbackText}</p>
-                    <div class="feedback-actions">
-                        <button class="upvote">👍 0</button>
-                        <button class="downvote">👎 0</button>
-                    </div>
-                    <div class="comment-section">
-                        <input type="text" class="comment-input" placeholder="Add a comment...">
-                        <button class="comment-button">Post</button>
-                        <div class="comment-container"></div>
-                    </div>
-                `;
-                feedbackSection.appendChild(newFeedback);
-                document.querySelector('.confirmation-message').style.display = 'block';
-                document.querySelector('#feedback-text').value = '';
-            }
-        });
-        document.addEventListener('click', function(event) {
-            if (event.target.classList.contains('comment-button')) {
-                const commentInput = event.target.previousElementSibling;
-                const commentText = commentInput.value;
-                if (commentText.trim() !== '') {
-                    const commentContainer = event.target.nextElementSibling;
-                    const newComment = document.createElement('div');
-                    newComment.classList.add('comment-container');
-                    newComment.innerHTML = `
-                        <p>${commentText}</p>
-                        <div class="comment-actions">
-                            <button class="upvote">👍 0</button>
-                            <button class="downvote">👎 0</button>
-                        </div>
-                    `;
-                    commentContainer.appendChild(newComment);
-                    commentInput.value = '';
-                }
-            }
-        });

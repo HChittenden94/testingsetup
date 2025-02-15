@@ -9,8 +9,9 @@ const port = 3000;
 
 const bcrypt = require('bcrypt');
 
-app.use(bodyParser.json());
 app.use(cors()); // Enable CORS for all requests
+
+app.use(bodyParser.json());
 
 // Database connection setup
 const db = mysql.createConnection({
@@ -45,27 +46,42 @@ app.get('/get-feedback', (req, res) => {
 //Manager Login - Check credentials
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-
-    db.query('SELECT * FROM managers WHERE username = ?', [username], (err, results) => {
-        if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ success: false, message: 'Internal server error' });
+    db.query('SELECT * FROM managers WHERE name = ?', [username], (err, results) => {
+        if (err || results.length === 0 || results[0].password !== password) {
+            return res.json({ success: false, message: 'Invalid credentials' });
         }
-
-        if (results.length === 0) {
-            return res.json({ success: false, message: 'Invalid username or password' });
-        }
-
-        const user = results[0];
-
-        // Directly compare plain text passwords
-        if (password === user.password) {
-            return res.json({ success: true, message: 'Login successful' });
-        } else {
-            return res.json({ success: false, message: 'Invalid username or password' });
-        }
+        res.json({ success: true, role: 'manager' });
     });
 });
+
+// Acknowledge feedback
+app.post('/mark-feedback-read', (req, res) => {
+    console.log("Received request at /mark-feedback-read"); // Debugging log
+
+    const { feedback_id, acknowledged } = req.body;
+    console.log("Received Data:", req.body); // Log received data
+
+    if (!feedback_id) {
+        return res.status(400).json({ error: 'Feedback ID is required' });
+    }
+
+    const query = 'UPDATE feedback SET manager_acknowledged = ? WHERE feedback_id = ?';
+
+    db.query(query, [acknowledged ? 1 : 0, feedback_id], (err, result) => {
+        if (err) {
+            console.error('Error updating acknowledgment:', err);
+            return res.status(500).json({ error: 'Database update failed' });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Feedback not found' });
+        }
+
+        console.log(`Feedback ID ${feedback_id} marked as ${acknowledged ? 'acknowledged' : 'unacknowledged'}`);
+        res.json({ success: true, message: `Acknowledgment updated for feedback ID ${feedback_id}` });
+    });
+});
+
 
 // API endpoint to handle feedback submission
 app.post('/submit-feedback', (req, res) => {
