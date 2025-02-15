@@ -208,23 +208,24 @@
         <p>This section is only visible to logged-in managers.</p>
     </div>
 
-    <button id="logout-button" style="display: none;">Logout</button>
+<button id="logout-button" style="display: none;" onclick="logout()">Logout</button>
 
-    <script>
+<script>
     document.addEventListener('DOMContentLoaded', function() {
-        const isManager = localStorage.getItem('isManager') === 'true';
-
-        if (isManager) {
+        const role = localStorage.getItem('role') || 'employee';
+        
+        if (role === 'manager') {
             document.getElementById('manager-section').style.display = 'block';
             document.getElementById('logout-button').style.display = 'block';
         }
-
-        document.getElementById('logout-button').addEventListener('click', function() {
-            localStorage.removeItem('isManager');
-            window.location.reload();
-        });
     });
-    </script>
+
+    function logout() {
+        localStorage.removeItem('role'); // Clears stored role
+        window.location.href = 'manager-login.html'; // Redirects to login page
+    }
+</script>
+
     </main>
   <script src="javascript.js"></script>  
 </body>
