@@ -47,12 +47,25 @@ app.get('/get-feedback', (req, res) => {
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     db.query('SELECT * FROM managers WHERE username = ?', [username], (err, results) => {
-        if (err || results.length === 0 || results[0].password !== password) {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ success: false, message: 'Internal server error' });
+        }
+
+        if (results.length === 0) {
             return res.json({ success: false, message: 'Invalid credentials' });
         }
-        res.json({ success: true, role: 'manager' });
+
+        const user = results[0];
+
+        if (user.password === password) {
+            res.json({ success: true, role: 'manager' });
+        } else {
+            res.json({ success: false, message: 'Invalid credentials' });
+        }
     });
 });
+
 
 // Acknowledge feedback
 app.post('/mark-feedback-read', (req, res) => {

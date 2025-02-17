@@ -47,10 +47,18 @@ async function loadFeedback() {
 
         feedbackList.forEach(feedback => {
             const feedbackPost = document.createElement('div');
+
+            const feedbackTimestamp = new Date(feedback.created_at);
+            const formattedFeedbackTimestamp = feedbackTimestamp.toLocaleString(); // Format timestamp
+
             feedbackPost.classList.add('feedback-post');
             feedbackPost.dataset.id = feedback.feedback_id; // Store feedback ID
+            
             feedbackPost.innerHTML = `
-                <p>${feedback.feedback_text}</p>
+                <div class="feedback-header">
+                    <p>${feedback.feedback_text}</p>
+                    <p><small class="timestamp">${formattedFeedbackTimestamp}</small></p> <!-- Feedback timestamp -->
+                </div>
 
                 <!-- Upvote/Downvote Buttons -->
                 <div class="feedback-actions">
