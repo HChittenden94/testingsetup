@@ -46,7 +46,7 @@ app.get('/get-feedback', (req, res) => {
 //Manager Login - Check credentials
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-    db.query('SELECT * FROM managers WHERE name = ?', [username], (err, results) => {
+    db.query('SELECT * FROM managers WHERE username = ?', [username], (err, results) => {
         if (err || results.length === 0 || results[0].password !== password) {
             return res.json({ success: false, message: 'Invalid credentials' });
         }
