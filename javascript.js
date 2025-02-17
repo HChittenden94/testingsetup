@@ -47,6 +47,7 @@ async function loadFeedback() {
 
         feedbackList.forEach(feedback => {
             const feedbackPost = document.createElement('div');
+
             const feedbackTimestamp = new Date(feedback.created_at);
             const formattedFeedbackTimestamp = feedbackTimestamp.toLocaleString(); // Format timestamp
 

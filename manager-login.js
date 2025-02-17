@@ -1,35 +1,24 @@
-document.addEventListener('DOMContentLoaded', function () {
-    const loginForm = document.querySelector('#manager-login');
+document.getElementById('manager-login').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    
+    try {
+        const response = await fetch('http://localhost:3000/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
 
-    loginForm.addEventListener('submit', async function (event) {
-        event.preventDefault(); // Prevent page refresh
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message || 'Login failed');
 
-        const username = document.querySelector('#username').value.trim();
-        const password = document.querySelector('#password').value.trim();
+        // Save the manager role in localStorage
+        localStorage.setItem('role', 'manager');
 
-        if (!username || !password) {
-            alert('Please enter both username and password.');
-            return;
-        }
-
-        try {
-            const response = await fetch('http://localhost:3000/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-
-            const result = await response.json();
-            if (result.success) {
-                alert('Login successful!');
-                sessionStorage.setItem('isManager', 'true'); // Store authentication state
-                window.location.href = 'index.html'; // Redirect to the main page
-            } else {
-                alert('Invalid username or password.');
-            }
-        } catch (error) {
-            console.error('Login error:', error);
-            alert('Error logging in.');
-        }
-    });
+        console.log('Manager logged in successfully.');
+        window.location.href = 'index.html';  // Redirect after login
+    } catch (error) {
+        alert('Invalid credentials');
+    }
 });
