@@ -1,4 +1,9 @@
+
 const express = require('express');
+
+// ADDED THIS LINE 1/3
+const path = require('path');
+
 const mysql = require('mysql2/promise');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -10,7 +15,13 @@ const bcrypt = require('bcrypt');
 
 app.use(cors()); // Enable CORS for all requests
 app.use(bodyParser.json());
-app.use(express.static('public'));
+
+
+//CHANGED THIS LINE 2/3
+// app.use(express.static('public'));
+app.use(express.static(__dirname));
+
+
 
 // Create a pool instead of a single connection
 const pool = mysql.createPool({
@@ -32,6 +43,16 @@ const pool = mysql.createPool({
         console.error('Database connection failed:', err);
     }
 })();
+
+
+// ADD THIS 3/3
+// Serve the main HTML file
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+
+
 
 // Fetch feedback from database
 app.get('/get-feedback', async (req, res) => {
