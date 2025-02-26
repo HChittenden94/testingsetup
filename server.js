@@ -1,9 +1,6 @@
 
 const express = require('express');
-
-// ADDED THIS LINE 1/3
 const path = require('path');
-
 const mysql = require('mysql2/promise');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -13,12 +10,8 @@ const port = 3000;
 
 const bcrypt = require('bcrypt');
 
-app.use(cors()); // Enable CORS for all requests
+app.use(cors()); 
 app.use(bodyParser.json());
-
-
-//CHANGED THIS LINE 2/3
-// app.use(express.static('public'));
 app.use(express.static(__dirname));
 
 
@@ -45,13 +38,10 @@ const pool = mysql.createPool({
 })();
 
 
-// ADD THIS 3/3
-// Serve the main HTML file
+// Access root URL to fix "CANNOT GET /" error
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
-
-
 
 
 // Fetch feedback from database
