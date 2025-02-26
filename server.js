@@ -10,6 +10,7 @@ const bcrypt = require('bcrypt');
 
 app.use(cors()); // Enable CORS for all requests
 app.use(bodyParser.json());
+app.use(express.static('public'));
 
 // Create a pool instead of a single connection
 const pool = mysql.createPool({
