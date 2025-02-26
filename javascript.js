@@ -55,17 +55,18 @@ async function loadFeedback() {
             feedbackPost.dataset.id = feedback.feedback_id; // Store feedback ID
 
             feedbackPost.innerHTML = `
-                <div class="feedback-header">
-                    <p>${feedback.feedback_text}</p>
-                    <p><small class="timestamp">${formattedFeedbackTimestamp}</small></p> <!-- Feedback timestamp -->
-                </div>
+            <div class="feedback-header">
+                <p>${feedback.feedback_text}</p>
+            </div>
 
-                <!-- Upvote/Downvote Buttons -->
+            <!-- Footer with Upvote/Downvote Buttons and Timestamp -->
+            <div class="feedback-footer">
                 <div class="feedback-actions">
                     <button class="upvote" data-id="${feedback.feedback_id}">👍 ${feedback.upvotes || 0}</button>
                     <button class="downvote" data-id="${feedback.feedback_id}">👎 ${feedback.downvotes || 0}</button>
                 </div>
-
+                <span class="timestamp">${formattedFeedbackTimestamp}</span> <!-- Moved timestamp here -->
+            </div>
                 <!-- Comment Section -->
                 <div class="comment-section">
                     <input type="text" class="comment-input" placeholder="Add a comment...">
