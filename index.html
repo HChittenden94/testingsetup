@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employee Feedback Portal</title>
-    <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
@@ -284,13 +283,20 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const role = localStorage.getItem('role') || 'employee';
-        
-        if (role === 'manager') {
-            document.getElementById('manager-section').style.display = 'block';
-            document.getElementById('logout-button').style.display = 'block';
-        }
-    });
+    let role = localStorage.getItem('role');
+
+    // Reset role if it's invalid (corrupt data issue prevention)
+    if (!role || (role !== 'manager' && role !== 'employee')) {
+        localStorage.setItem('role', 'employee');
+        role = 'employee';
+    }
+    if (role !== 'manager') {
+        document.getElementById('manager-section').style.display = 'none';
+    } else {
+        document.getElementById('manager-section').style.display = 'block';
+        document.getElementById('logout-button').style.display = 'block';
+    }
+});
 
     function logout() {
         localStorage.removeItem('role'); // Clears stored role
