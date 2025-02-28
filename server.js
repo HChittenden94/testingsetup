@@ -14,9 +14,7 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(__dirname));
 
-
-
-// Create a pool instead of a single connection
+// Create pool to connect to database
 const pool = mysql.createPool({
     host: '107.180.1.16',
     user: 'cis440springA2025team10',
@@ -27,7 +25,7 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
-// Provide error if database connection fails
+// Error message for database connection failure
 (async () => {
     try {
         const [results] = await pool.query('SELECT 1');
@@ -37,16 +35,15 @@ const pool = mysql.createPool({
     }
 })();
 
-
 // Access root URL to fix "CANNOT GET /" error
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 
-// Fetch feedback from database
+// Fetch and display feedback from database
 app.get('/get-feedback', async (req, res) => {
-    const sql = 'SELECT * FROM feedback ORDER BY upvotes DESC, downvotes ASC'; // Fetch in order
+    const sql = 'SELECT * FROM feedback ORDER BY upvotes DESC, downvotes ASC';
 
     try {
         const [results] = await pool.query(sql);
@@ -83,10 +80,7 @@ app.post('/login', async (req, res) => {
 
 // Acknowledge feedback
 app.post('/mark-feedback-read', async (req, res) => {
-    console.log("Received request at /mark-feedback-read"); // Debugging log
-
     const { feedback_id, acknowledged } = req.body;
-    console.log("Received Data:", req.body); // Log received data
 
     if (!feedback_id) {
         return res.status(400).json({ error: 'Feedback ID is required' });
@@ -100,7 +94,6 @@ app.post('/mark-feedback-read', async (req, res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Feedback not found' });
         }
-
         console.log(`Feedback ID ${feedback_id} marked as ${acknowledged ? 'acknowledged' : 'unacknowledged'}`);
         res.json({ success: true, message: `Acknowledgment updated for feedback ID ${feedback_id}` });
     } catch (err) {
@@ -109,9 +102,8 @@ app.post('/mark-feedback-read', async (req, res) => {
     }
 });
 
-// API endpoint to handle feedback submission
+// Send Feedback to database
 app.post('/submit-feedback', async (req, res) => {
-    console.log('Received data:', req.body); // Log request data
     const { feedback_text } = req.body;
 
     if (!feedback_text) {
@@ -131,9 +123,9 @@ app.post('/submit-feedback', async (req, res) => {
     }
 });
 
-// Send Upvotes and Downvotes to database
+// Send upvotes and downvotes to database
 app.post('/vote-feedback', async (req, res) => {
-    const { feedback_id, vote } = req.body; // vote = 1 for upvote, -1 for downvote
+    const { feedback_id, vote } = req.body;
 
     if (!feedback_id || ![1, -1].includes(vote)) {
         return res.status(400).json({ error: 'Invalid request' });
@@ -152,9 +144,8 @@ app.post('/vote-feedback', async (req, res) => {
     }
 });
 
-// API endpoint to handle comment submission
+// Send comments to database
 app.post('/submit-comment', async (req, res) => {
-    console.log('Received comment data:', req.body); // Log request data
     const { feedback_id, comment } = req.body;
 
     if (!feedback_id || !comment) {
@@ -175,7 +166,7 @@ app.post('/submit-comment', async (req, res) => {
 });
 
 
-// Fetch comments for a specific feedback
+// Fetch comments for feedback
 app.get('/get-comments', async (req, res) => {
     const { feedback_id } = req.query;
     if (!feedback_id) {
@@ -196,10 +187,10 @@ app.get('/get-comments', async (req, res) => {
 
 // DELETE route for deleting a comment (MANAGER ONLY)
 app.delete('/delete-comment', async (req, res) => {
-    const { id } = req.body; // Use "id" as the key to match the column name in the database
+    const { id } = req.body;
 
     try {
-        const result = await pool.query('DELETE FROM comments WHERE id = ?', [id]); // Correct column name here
+        const result = await pool.query('DELETE FROM comments WHERE id = ?', [id]);
         
         if (result.affectedRows > 0) {
             res.status(200).send('Comment deleted successfully.');
